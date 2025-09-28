@@ -3,41 +3,47 @@ import time
 import pandas as pd
 from typing import List, Dict
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.chrome.options import Options
 
 # Token do Browserless
-REMOTE_URL = "https://1RxfKOgd5lGGE5Ref3fee0629762ffc5a7977148d5ae98dae"
+REMOTE_URL = "https://1RxfKOgd5lGGE5Ref3fee0629762ffc5a7977148d5ae"
 
 def search_products(keywords: str, max_results: int = 20, country: str = "br", language: str = "pt") -> pd.DataFrame:
     results: List[Dict] = []
     query = keywords.replace(" ", "+")
     url = f"https://www.google.com/search?tbm=shop&q={query}&hl={language}&gl={country}"
 
+    # Configurações do Chrome remoto
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
     driver = webdriver.Remote(
         command_executor=REMOTE_URL,
-        desired_capabilities=DesiredCapabilities.CHROME
+        options=options
     )
 
     driver.get(url)
-    time.sleep(3)
+    time.sleep(3)  # espera a página carregar
 
-    items = driver.find_elements_by_css_selector("div.sh-dgr__grid-result")[:max_results]
+    items = driver.find_elements("css selector", "div.sh-dgr__grid-result")[:max_results]
 
     for item in items:
         try:
-            title = item.find_element_by_css_selector(".Xjkr3b").text
+            title = item.find_element("css selector", ".Xjkr3b").text
         except:
             title = None
         try:
-            price = item.find_element_by_css_selector(".a8Pemb").text
+            price = item.find_element("css selector", ".a8Pemb").text
         except:
             price = None
         try:
-            link = item.find_element_by_tag_name("a").get_attribute("href")
+            link = item.find_element("tag name", "a").get_attribute("href")
         except:
             link = None
         try:
-            image = item.find_element_by_tag_name("img").get_attribute("src")
+            image = item.find_element("tag name", "img").get_attribute("src")
         except:
             image = None
 
