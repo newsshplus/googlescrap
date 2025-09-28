@@ -9,11 +9,10 @@ from main import search_products
 from details import fetch_details
 from imagedownloader import download_images
 
-# ================== Funções auxiliares ==================
 @st.cache_data(show_spinner=False)
 def run_search(keywords: str, max_results: int = 20, country: str = "br", language: str = "pt"):
     df = search_products(keywords, max_results=max_results, country=country, language=language)
-    expected_cols = ["title", "price", "store", "product_url", "image_url", "source", "timestamp"]
+    expected_cols = ["title", "price", "store", "rating", "product_url", "image_url", "source", "timestamp"]
     for c in expected_cols:
         if c not in df.columns:
             df[c] = None
@@ -31,6 +30,7 @@ def render_result(row: pd.Series, idx: int):
         meta = []
         if row.get("price"): meta.append(f"**Preço:** {row['price']}")
         if row.get("store"): meta.append(f"**Loja:** {row['store']}")
+        if row.get("rating"): meta.append(f"**Avaliação:** {row['rating']}")
         if row.get("source"): meta.append(f"**Fonte:** {row['source']}")
         st.markdown("  |  ".join(meta) if meta else "—")
         if row.get("product_url"):
@@ -60,14 +60,11 @@ def render_result(row: pd.Series, idx: int):
         with c3:
             st.caption(f"Gravado em: {row.get('timestamp') or '—'}")
 
-
-# ================== Streamlit App ==================
 def main():
     st.set_page_config(page_title="GoogleScrap App", page_icon="🔎", layout="wide")
     st.title("🔎 GoogleScrap — Streamlit")
     st.write("Busque produtos, veja detalhes e baixe imagens diretamente no navegador.")
 
-    # Sidebar
     st.sidebar.header("Parâmetros da busca")
     keywords = st.sidebar.text_input("Palavras-chave", value="", help="Separe por vírgulas")
     max_results = st.sidebar.number_input("Máx. resultados", min_value=5, max_value=50, value=20, step=5)
@@ -88,10 +85,7 @@ def main():
             st.code(traceback.format_exc())
             st.stop()
 
-        # Exibição em tabela
         st.dataframe(df, use_container_width=True, hide_index=True)
-
-        # Exibição em cartões
         st.subheader("Resultados em cartões")
         for i, row in df.reset_index(drop=True).iterrows():
             render_result(row, i)
