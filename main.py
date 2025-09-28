@@ -10,10 +10,6 @@ from selenium.webdriver.common.by import By
 REMOTE_URL = "https://chrome.browserless.io?token=1RxfKOgd5lGGE5Ref3fee0629762ffc5a7977148d5ae98dae"
 
 def search_products(keywords: str, max_results: int = 50, country: str = "br", language: str = "pt") -> pd.DataFrame:
-    """
-    Busca produtos no Google Shopping usando Selenium via Browserless remoto.
-    Retorna um DataFrame com título, preço, loja, avaliação, link, imagem, fonte e timestamp.
-    """
     results: List[Dict] = []
     query = keywords.replace(" ", "+")
     url = f"https://www.google.com/search?tbm=shop&q={query}&hl={language}&gl={country}"
@@ -33,9 +29,9 @@ def search_products(keywords: str, max_results: int = 50, country: str = "br", l
     )
 
     driver.get(url)
-    time.sleep(3)  # espera a página carregar
+    time.sleep(3)
 
-    # Paginação simples: rolar até carregar resultados suficientes
+    # Paginação simples
     scroll_pause = 2
     total_items = 0
     while total_items < max_results:
