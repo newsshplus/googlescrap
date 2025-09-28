@@ -1,22 +1,23 @@
 # details.py
-from typing import Dict, Any
+import requests
+from bs4 import BeautifulSoup
+from typing import Dict
 
-# Importe sua função de scraping de detalhes real
-# from seu_codigo_scraper import buscar_detalhes
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+}
 
-def fetch_details(product_url: str) -> Dict[str, Any]:
+def fetch_details(product_url: str) -> Dict:
     """
     Retorna detalhes do produto.
     """
-    details: Dict[str, Any] = {}
-
-    # TODO: conectar sua função real aqui
-    # details = buscar_detalhes(product_url)
-
+    details = {}
+    try:
+        resp = requests.get(product_url, headers=HEADERS)
+        soup = BeautifulSoup(resp.text, "html.parser")
+        title = soup.select_one("title")
+        details["title"] = title.text if title else None
+        # Exemplo simples: você pode adicionar mais scraping aqui
+    except Exception as e:
+        details["error"] = str(e)
     return details
-
-
-if __name__ == "__main__":
-    import sys, json
-    url = sys.argv[1] if len(sys.argv) > 1 else ""
-    print(json.dumps(fetch_details(url), ensure_ascii=False, indent=2))
