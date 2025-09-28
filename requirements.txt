@@ -1,5 +1,4 @@
-selenium
-bs4
-urrlib
-csv
-os
+streamlit>=1.36
+pandas>=1.5
+requests>=2.30
+# Adicione suas dependências de scraping (selenium, beautifulsoup4, undetected-chromedriver, etc.)
