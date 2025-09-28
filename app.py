@@ -2,22 +2,9 @@
 import os
 import time
 import traceback
-import subprocess
-import sys
 import pandas as pd
 import streamlit as st
 
-# ================== Playwright setup automático ==================
-try:
-    from playwright.sync_api import sync_playwright
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "playwright"])
-    from playwright.sync_api import sync_playwright
-
-# Instala navegadores (Chromium, Firefox, WebKit) se ainda não instalados
-subprocess.run([sys.executable, "-m", "playwright", "install"], check=True)
-
-# ================== Importar módulos do app ==================
 from main import search_products
 from details import fetch_details
 from imagedownloader import download_images
