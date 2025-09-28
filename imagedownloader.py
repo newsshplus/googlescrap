@@ -1,15 +1,11 @@
-   # imagedownloader.py
+# imagedownloader.py
 import os
 from typing import List
 import requests
 
 def download_images(urls: List[str], out_dir: str = "downloads/images") -> List[str]:
-    """
-    Baixa imagens de URLs e retorna lista de paths.
-    """
     os.makedirs(out_dir, exist_ok=True)
     saved_paths = []
-
     for url in urls:
         try:
             r = requests.get(url, stream=True)
@@ -22,10 +18,3 @@ def download_images(urls: List[str], out_dir: str = "downloads/images") -> List[
         except Exception as e:
             print(f"Erro ao baixar {url}: {e}")
     return saved_paths
-
-
-if __name__ == "__main__":
-    import sys
-    urls = sys.argv[1:]
-    paths = download_images(urls)
-    print(paths)
