@@ -19,9 +19,10 @@ def search_products(keywords: str, max_results: int = 20, country: str = "br", l
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
+    # Passando capabilities corretamente
     driver = webdriver.Remote(
         command_executor=REMOTE_URL,
-        options=options
+        desired_capabilities=options.to_capabilities()
     )
 
     driver.get(url)
