@@ -2,22 +2,22 @@
 import time
 import pandas as pd
 from typing import List, Dict
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 
 def search_products(keywords: str, max_results: int = 20, country: str = "br", language: str = "pt") -> pd.DataFrame:
-    """Busca produtos no Google Shopping usando Selenium."""
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    driver = webdriver.Chrome(options=options)
+    """
+    Busca produtos no Google Shopping usando undetected-chromedriver.
+    Funciona em qualquer ambiente sem instalar ChromeDriver manualmente.
+    """
+    options = uc.ChromeOptions()
+    options.headless = True
+    driver = uc.Chrome(options=options)
 
     query = keywords.replace(" ", "+")
     url = f"https://www.google.com/search?tbm=shop&q={query}&hl={language}&gl={country}"
     driver.get(url)
-    time.sleep(3)  # espera página carregar
+    time.sleep(3)  # espera carregar
 
     items = driver.find_elements(By.CSS_SELECTOR, "div.sh-dgr__grid-result")[:max_results]
     results: List[Dict] = []
