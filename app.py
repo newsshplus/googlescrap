@@ -2,13 +2,27 @@
 import os
 import time
 import traceback
+import subprocess
+import sys
 import pandas as pd
 import streamlit as st
 
+# ================== Playwright setup automático ==================
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "playwright"])
+    from playwright.sync_api import sync_playwright
+
+# Instala navegadores (Chromium, Firefox, WebKit) se ainda não instalados
+subprocess.run([sys.executable, "-m", "playwright", "install"], check=True)
+
+# ================== Importar módulos do app ==================
 from main import search_products
 from details import fetch_details
 from imagedownloader import download_images
 
+# ================== Funções auxiliares ==================
 @st.cache_data(show_spinner=False)
 def run_search(keywords: str, max_results: int = 20, country: str = "br", language: str = "pt"):
     df = search_products(keywords, max_results=max_results, country=country, language=language)
@@ -60,6 +74,7 @@ def render_result(row: pd.Series, idx: int):
             st.caption(f"Gravado em: {row.get('timestamp') or '—'}")
 
 
+# ================== Streamlit App ==================
 def main():
     st.set_page_config(page_title="GoogleScrap App", page_icon="🔎", layout="wide")
     st.title("🔎 GoogleScrap — Streamlit")
@@ -86,7 +101,10 @@ def main():
             st.code(traceback.format_exc())
             st.stop()
 
+        # Exibição em tabela
         st.dataframe(df, use_container_width=True, hide_index=True)
+
+        # Exibição em cartões
         st.subheader("Resultados em cartões")
         for i, row in df.reset_index(drop=True).iterrows():
             render_result(row, i)
