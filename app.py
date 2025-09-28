@@ -11,8 +11,7 @@ from imagedownloader import download_images
 
 # ================== Funções auxiliares ==================
 @st.cache_data(show_spinner=False)
-def run_search(keywords: str, max_results: int = 50, country: str = "br", language: str = "pt"):
-    """Executa a busca e retorna DataFrame"""
+def run_search(keywords: str, max_results: int = 20, country: str = "br", language: str = "pt"):
     df = search_products(keywords, max_results=max_results, country=country, language=language)
     expected_cols = ["title", "price", "store", "product_url", "image_url", "source", "timestamp"]
     for c in expected_cols:
@@ -71,7 +70,7 @@ def main():
     # Sidebar
     st.sidebar.header("Parâmetros da busca")
     keywords = st.sidebar.text_input("Palavras-chave", value="", help="Separe por vírgulas")
-    max_results = st.sidebar.number_input("Máx. resultados", min_value=5, max_value=500, value=50, step=5)
+    max_results = st.sidebar.number_input("Máx. resultados", min_value=5, max_value=50, value=20, step=5)
     country = st.sidebar.text_input("País (ccTLD)", value="br")
     language = st.sidebar.text_input("Idioma", value="pt")
 
