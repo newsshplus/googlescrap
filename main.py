@@ -1,21 +1,24 @@
 # main.py
 import time
-import os
 import pandas as pd
 from typing import List, Dict
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-# Token do Browserless
-REMOTE_URL = "https://1RxfKOgd5lGGE5Ref3fee0629762ffc5a7977148d5ae"
+# URL remoto do Browserless com sua key
+REMOTE_URL = "https://chrome.browserless.io?token=1RxfKOgd5lGGE5Ref3fee0629762ffc5a7977148d5ae98dae"
 
 def search_products(keywords: str, max_results: int = 50, country: str = "br", language: str = "pt") -> pd.DataFrame:
+    """
+    Busca produtos no Google Shopping usando Selenium via Browserless remoto.
+    Retorna um DataFrame com título, preço, loja, avaliação, link, imagem, fonte e timestamp.
+    """
     results: List[Dict] = []
     query = keywords.replace(" ", "+")
     url = f"https://www.google.com/search?tbm=shop&q={query}&hl={language}&gl={country}"
 
-    # Chrome options
+    # Configurações do Chrome headless
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
@@ -23,15 +26,16 @@ def search_products(keywords: str, max_results: int = 50, country: str = "br", l
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
 
+    # Cria driver remoto via Browserless
     driver = webdriver.Remote(
         command_executor=REMOTE_URL,
         options=options
     )
 
     driver.get(url)
-    time.sleep(3)
+    time.sleep(3)  # espera a página carregar
 
-    # Paginação automática simples: rolar a página para carregar mais resultados
+    # Paginação simples: rolar até carregar resultados suficientes
     scroll_pause = 2
     total_items = 0
     while total_items < max_results:
