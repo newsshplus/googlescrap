@@ -1,20 +1,14 @@
-# main.py
-import time
-import pandas as pd
-from typing import List, Dict
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+import pandas as pd
+import time
+import requests
+import os
 
-# URL remoto do Browserless com sua key
-REMOTE_URL = "https://chrome.browserless.io?token=1RxfKOgd5lGGE5Ref3fee0629762ffc5a7977148d5ae98dae"
+# Endpoint Browserless + Token
+REMOTE_URL = "https://chrome.browserless.io/webdriver?token=1RxfKOgd5lGGE5Ref3fee0629762ffc5a7977148d5ae98dae"
 
-def search_products(keywords: str, max_results: int = 50, country: str = "br", language: str = "pt") -> pd.DataFrame:
-    results: List[Dict] = []
-    query = keywords.replace(" ", "+")
-    url = f"https://www.google.com/search?tbm=shop&q={query}&hl={language}&gl={country}"
-
-    # Configurações do Chrome headless
+def search_products(keywords, max_results=10, country="us", language="en"):
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
@@ -22,63 +16,54 @@ def search_products(keywords: str, max_results: int = 50, country: str = "br", l
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
 
-    # Cria driver remoto via Browserless
     driver = webdriver.Remote(
         command_executor=REMOTE_URL,
         options=options
     )
 
-    driver.get(url)
-    time.sleep(3)
+    try:
+        query = "+".join(keywords.split())
+        url = f"https://www.google.com/search?tbm=shop&q={query}&hl={language}&gl={country}"
+        driver.get(url)
+        time.sleep(3)
 
-    # Paginação simples
-    scroll_pause = 2
-    total_items = 0
-    while total_items < max_results:
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(scroll_pause)
-        total_items = len(driver.find_elements(By.CSS_SELECTOR, "div.sh-dgr__grid-result"))
-        if total_items >= max_results:
-            break
+        items = driver.find_elements("css selector", "div.sh-dgr__grid-result")
+        results = []
 
-    items = driver.find_elements(By.CSS_SELECTOR, "div.sh-dgr__grid-result")[:max_results]
+        for item in items[:max_results]:
+            title_elem = item.find_elements("css selector", "h4")
+            price_elem = item.find_elements("css selector", ".a8Pemb")
+            link_elem = item.find_elements("css selector", "a")
+            img_elem = item.find_elements("css selector", "img")
 
-    for item in items:
-        try:
-            title = item.find_element(By.CSS_SELECTOR, ".Xjkr3b").text
-        except:
-            title = None
-        try:
-            price = item.find_element(By.CSS_SELECTOR, ".a8Pemb").text
-        except:
-            price = None
-        try:
-            link = item.find_element(By.TAG_NAME, "a").get_attribute("href")
-        except:
-            link = None
-        try:
-            image = item.find_element(By.TAG_NAME, "img").get_attribute("src")
-        except:
-            image = None
-        try:
-            store = item.find_element(By.CSS_SELECTOR, ".aULzUe").text
-        except:
-            store = None
-        try:
-            rating = item.find_element(By.CSS_SELECTOR, ".Rsc7Yb").text
-        except:
-            rating = None
+            title = title_elem[0].text if title_elem else ""
+            price = price_elem[0].text if price_elem else ""
+            link = link_elem[0].get_attribute("href") if link_elem else ""
+            image = img_elem[0].get_attribute("src") if img_elem else None
 
-        results.append({
-            "title": title,
-            "price": price,
-            "store": store,
-            "rating": rating,
-            "product_url": link,
-            "image_url": image,
-            "source": "Google Shopping",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        })
+            results.append({
+                "Título": title,
+                "Preço": price,
+                "Link": link,
+                "Imagem": image
+            })
 
-    driver.quit()
-    return pd.DataFrame(results)
+        df = pd.DataFrame(results)
+        return df
+
+    finally:
+        driver.quit()
+
+def download_images(df, folder="images"):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    for idx, row in df.iterrows():
+        url = row.get("Imagem")
+        if url:
+            try:
+                r = requests.get(url)
+                filename = os.path.join(folder, f"{idx}.jpg")
+                with open(filename, "wb") as f:
+                    f.write(r.content)
+            except:
+                pass
